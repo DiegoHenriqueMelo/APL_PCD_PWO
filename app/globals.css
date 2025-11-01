@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Placeholder mais escuro */
+input::placeholder,
+select::placeholder,
+textarea::placeholder {
+  color: #6b7280 !important;
+  opacity: 1 !important;
+}
+
+/* Cores customizadas do sistema */
+:root {
+  --color-candidato: #7BB7EB;
+  --color-empresa: #ECAE7D;
+  --color-accent-yellow: #ECCD7B;
+  --color-neutral: #52606B;
+}
+
+/* Focus rings personalizados */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(123, 183, 235, 0.2);
+}
+
+/* Garantir visibilidade do texto nos inputs - MÁXIMA PRIORIDADE */
+input,
+select,
+textarea,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+input[type="date"],
+input[type="number"] {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+  opacity: 1 !important;
+}
+
+/* Estado com valor */
+input:not(:placeholder-shown),
+select:not(:placeholder-shown),
+input:valid,
+select:valid {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+  opacity: 1 !important;
+}
+
+/* Estado desabilitado */
+input:disabled,
+select:disabled,
+textarea:disabled {
+  color: #6b7280 !important;
+  -webkit-text-fill-color: #6b7280 !important;
+  opacity: 1 !important;
+}
+
+/* Opções do select - FORÇAR VISIBILIDADE */
+select option {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+select option:hover,
+select option:focus,
+select option:checked {
+  background-color: #7BB7EB !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Autofill - forçar visibilidade mesmo com autofill do navegador */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-text-fill-color: #111827 !important;
+  color: #111827 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}

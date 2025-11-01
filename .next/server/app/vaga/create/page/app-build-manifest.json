@@ -1,0 +1,17 @@
+{
+  "pages": {
+    "/vaga/create/page": [
+      "static/chunks/ff1a16fafef87110.js",
+      "static/chunks/7dd66bdf8a7e5707.js",
+      "static/chunks/02777eec86fff24a.css",
+      "static/chunks/3d94210e4ba0b88f.js",
+      "static/chunks/164fb767549122c2.js",
+      "static/chunks/aaea1e64ef7e0faa.js",
+      "static/chunks/91adb7bdb9870c6a.js",
+      "static/chunks/2468949c4832742b.js",
+      "static/chunks/8082ab48faca5ea1.js",
+      "static/chunks/8de370c3cbabf345.js",
+      "static/chunks/turbopack-e90ca1e61718ef61.js"
+    ]
+  }
+}
