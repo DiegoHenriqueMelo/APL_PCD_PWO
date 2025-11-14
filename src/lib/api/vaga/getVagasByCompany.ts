@@ -9,7 +9,10 @@ export const getVagasByCompany = async (companyId: string) => {
 
     const response = await fetch(`http://localhost:3001/get/vagas/byId/${companyId}`, {
       method: 'GET',
-      headers,
+      headers: {
+        ...headers,
+        Accept: 'application/json',
+      },
     });
 
     console.log('Status:', response.status);

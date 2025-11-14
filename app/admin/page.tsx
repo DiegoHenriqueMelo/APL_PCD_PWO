@@ -143,9 +143,16 @@ export default function AdminPage() {
 
       const tipoId = tipoIdMap[formSubtipo.deficiencia] || '';
 
+      // Formatar data no formato YYYY/MM/DD esperado pela API
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const horaFormatada = `${year}/${month}/${day}`;
+
       const data = {
         descricao: formSubtipo.nome,
-        hora: new Date().toISOString(),
+        hora: horaFormatada,
         tipo: tipoId,
         barreira: formSubtipo.barreira,
         acessibilidade: formSubtipo.acessibilidade,
@@ -155,7 +162,11 @@ export default function AdminPage() {
 
       const response = await createSubTipo(data);
       
+      console.log('Response status:', response?.status);
+      
       if (response?.ok) {
+        const result = await response.json();
+        console.log('Subtipo criado:', result);
         showPopup('success', 'Subtipo criado com sucesso!');
         setFormSubtipo({
           nome: '',
@@ -163,8 +174,12 @@ export default function AdminPage() {
           barreira: '',
           acessibilidade: '',
         });
+        // Recarrega dados para atualizar lista
+        window.location.reload();
       } else {
-        showPopup('error', 'Erro ao criar subtipo');
+        const errorData = await response?.json().catch(() => ({}));
+        console.error('Erro ao criar subtipo:', errorData);
+        showPopup('error', errorData?.message || 'Erro ao criar subtipo');
       }
     } catch (error) {
       console.error('Erro:', error);
@@ -190,13 +205,22 @@ export default function AdminPage() {
         descricao: formBarreira.nome,
       };
 
+      console.log('Criando barreira:', data);
       const response = await createBarreira(data);
       
+      console.log('Response status:', response?.status);
+      
       if (response?.ok) {
+        const result = await response.json();
+        console.log('Barreira criada:', result);
         showPopup('success', 'Barreira criada com sucesso!');
         setFormBarreira({ nome: '' });
+        // Recarrega dados para atualizar lista
+        window.location.reload();
       } else {
-        showPopup('error', 'Erro ao criar barreira');
+        const errorData = await response?.json().catch(() => ({}));
+        console.error('Erro ao criar barreira:', errorData);
+        showPopup('error', errorData?.message || 'Erro ao criar barreira');
       }
     } catch (error) {
       console.error('Erro:', error);
@@ -222,13 +246,22 @@ export default function AdminPage() {
         descricao: formAcessibilidade.nome,
       };
 
+      console.log('Criando acessibilidade:', data);
       const response = await createAcessibilidade(data);
       
+      console.log('Response status:', response?.status);
+      
       if (response?.ok) {
+        const result = await response.json();
+        console.log('Acessibilidade criada:', result);
         showPopup('success', 'Acessibilidade criada com sucesso!');
         setFormAcessibilidade({ nome: '' });
+        // Recarrega dados para atualizar lista
+        window.location.reload();
       } else {
-        showPopup('error', 'Erro ao criar acessibilidade');
+        const errorData = await response?.json().catch(() => ({}));
+        console.error('Erro ao criar acessibilidade:', errorData);
+        showPopup('error', errorData?.message || 'Erro ao criar acessibilidade');
       }
     } catch (error) {
       console.error('Erro:', error);

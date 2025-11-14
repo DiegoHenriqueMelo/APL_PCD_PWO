@@ -16,7 +16,10 @@ export const changePassword = async (id: string, email: string, newSenha: string
     
     const response = await fetch(url, {
       method: 'PUT',
-      headers: getAuthHeaders(),
+      headers: {
+        ...getAuthHeaders(),
+        Accept: 'application/json',
+      },
       body: JSON.stringify(payload),
     });
 

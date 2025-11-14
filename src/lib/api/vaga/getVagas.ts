@@ -2,9 +2,12 @@ import { getAuthHeaders } from '../apiClient';
 
 export let getVagas = async (tipoAcessFilter?: string) => {
   try {
-    const response = await fetch("http://localhost:3001/get/vagas", {
-      method: "GET",
-      headers: getAuthHeaders(),
+    const response = await fetch('http://localhost:3001/get/vagas', {
+      method: 'GET',
+      headers: {
+        ...getAuthHeaders(),
+        Accept: 'application/json',
+      },
     });
     
     if (!response.ok) {

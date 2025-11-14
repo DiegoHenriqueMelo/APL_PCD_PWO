@@ -8,13 +8,17 @@ export let createSubTipo = async (data: {
     acessibilidade: string;
 }) => {
   try {
-    let response = await fetch("http://localhost:3001/adm/create/subtipo", {
-      method: "POST",
-      headers: getAuthHeaders(),
+    let response = await fetch('http://localhost:3001/adm/create/subtipo', {
+      method: 'POST',
+      headers: {
+        ...getAuthHeaders(),
+        Accept: 'application/json',
+      },
       body: JSON.stringify(data),
     });
     return response;
   } catch (error) {
-    console.error("Error creating subtipo:", error);
+    console.error('Error creating subtipo:', error);
+    throw error;
   }
 };

@@ -6,7 +6,10 @@ export const getCompanyByEmail = async (email: string) => {
     const encodedEmail = encodeURIComponent(email);
     const response = await fetch(`http://localhost:3001/get/contratante/byEmail/${encodedEmail}`, {
       method: 'GET',
-      headers: getAuthHeaders(),
+      headers: {
+        ...getAuthHeaders(),
+        Accept: 'application/json',
+      },
     });
 
     if (!response.ok) {

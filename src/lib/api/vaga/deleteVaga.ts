@@ -2,7 +2,10 @@ import { getAuthHeaders } from '../apiClient';
 
 export const deleteVaga = async (vagaId: string) => {
   try {
-    const headers = getAuthHeaders();
+    const headers = {
+      ...getAuthHeaders(),
+      Accept: 'application/json',
+    };
 
     const response = await fetch(`http://localhost:3001/delete/vaga/${vagaId}`, {
       method: 'DELETE',

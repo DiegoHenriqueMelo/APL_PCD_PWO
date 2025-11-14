@@ -3,8 +3,11 @@ import { getAuthHeaders } from '../apiClient';
 export const getCompany = async (id: string) => {
   try {
     const response = await fetch(`http://localhost:3001/get/empresa/${id}`, {
-      method: "GET",
-      headers: getAuthHeaders(),
+      method: 'GET',
+      headers: {
+        ...getAuthHeaders(),
+        Accept: 'application/json',
+      },
     });
     
     if (!response.ok) {

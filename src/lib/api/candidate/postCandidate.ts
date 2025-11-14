@@ -14,10 +14,11 @@ export let postCandidate = async (body: {
   barrier: string;
   accessibility: string;
 }): Promise<any> => {
-  let result = await fetch(`http://localhost:3001/create/candidato`, {
-    method: "POST",
+  let result = await fetch('http://localhost:3001/create/candidato', {
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
     },
     body: JSON.stringify(body),
   });

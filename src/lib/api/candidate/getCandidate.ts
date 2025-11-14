@@ -1,10 +1,13 @@
 import { getAuthHeaders } from '../apiClient';
 
 export let getCandidate = async ():Promise<any> =>{
-    let result = await fetch(`http://localhost:3001/get/canditado`, {
+    const result = await fetch('http://localhost:3001/get/canditado', {
         method: 'GET',
-        headers: getAuthHeaders(),
+        headers: {
+            ...getAuthHeaders(),
+            Accept: 'application/json',
+        },
     });
-    let data = await result.json();
+    const data = await result.json();
     return data;
 }

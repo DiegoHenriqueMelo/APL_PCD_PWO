@@ -11,6 +11,7 @@ export const loginCompany = async (credentials: { email: string; senha: string }
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Accept: 'application/json',
       },
       body: payload,
     });

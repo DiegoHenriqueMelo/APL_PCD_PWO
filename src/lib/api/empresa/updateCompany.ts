@@ -8,7 +8,10 @@ export const updateCompany = async (id: string, data: any) => {
     
     const response = await fetch(`http://localhost:3001/update/contratante/${id}`, {
       method: 'PUT',
-      headers: getAuthHeaders(),
+      headers: {
+        ...getAuthHeaders(),
+        Accept: 'application/json',
+      },
       body: JSON.stringify(data),
     });
 

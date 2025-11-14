@@ -9,12 +9,16 @@ export let createVaga = async (vagaData: {
   type: string;
   company_id: string;
   type_acessibility: string;
+  accessibility: string;
 }) => {
   try {
-    const headers = getAuthHeaders();
+    const headers = {
+      ...getAuthHeaders(),
+      Accept: 'application/json',
+    };
 
     let response = await fetch(
-      `http://localhost:3001/create/vaga/${vagaData.company_id}`,
+  `http://localhost:3001/create/vaga/${vagaData.company_id}`,
       {
         method: "POST",
         headers,

@@ -96,8 +96,13 @@ export default function LoginPage() {
             email: userData.email,
             cnpj: userData.cnpj,
             phone: userData.telefone,
+            accessibility: userData.acessibilidade || userData.accessibility || '', // Acessibilidades da empresa
             tipo: 'company' as const,
           };
+          
+          console.log('=== DADOS DA EMPRESA ===');
+          console.log('Acessibilidades:', userData.acessibilidade || userData.accessibility);
+          console.log('Dados formatados:', formattedUser);
         }
 
         showPopup('success', 'Login realizado com sucesso!');

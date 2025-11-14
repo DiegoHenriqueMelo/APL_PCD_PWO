@@ -24,6 +24,7 @@ export interface CompanyUser {
   email: string;
   cnpj: string;
   phone: string;
+  accessibility?: string; // Acessibilidades da empresa (separadas por vírgula)
   tipo: 'company';
 }
 

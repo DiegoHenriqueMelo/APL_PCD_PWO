@@ -4,7 +4,10 @@ export let getAnalitycs = async () => {
     try {
         let response = await fetch('http://localhost:3001/get/adm/dadosAnaliticos', {
             method: 'GET',
-            headers: getAuthHeaders()
+            headers: {
+                ...getAuthHeaders(),
+                Accept: 'application/json'
+            }
         });
         
         if (!response.ok) {

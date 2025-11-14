@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/src/contexts/AuthContext';
 import { updateCandidate } from '@/src/lib/api/candidate/updateCandidate';
 import { updateCompany } from '@/src/lib/api/empresa/updateCompany';
+import { getAnalitycs } from '@/src/lib/api/admin/getAnalitycs';
+import { getCompany } from '@/src/lib/api/empresa/getCompany';
 
 export default function EditarPerfilPage() {
   const router = useRouter();
@@ -30,8 +32,11 @@ export default function EditarPerfilPage() {
     email: '',
     cnpj: '',
     phone: '',
-    accessibility: '',
+    accessibility: [] as string[],
   });
+
+  const [acessibilidadesDisponiveis, setAcessibilidadesDisponiveis] = useState<string[]>([]);
+  const [loadingAcessibilidades, setLoadingAcessibilidades] = useState(true);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -51,6 +56,16 @@ export default function EditarPerfilPage() {
     setTimeout(() => {
       setPopup({ show: false, type, message: '' });
     }, 4000);
+  };
+
+  // Função para lidar com checkboxes de acessibilidade
+  const handleAcessibilidadeChange = (acessibilidade: string) => {
+    setCompanyData((prev) => {
+      const acessibilidades = prev.accessibility.includes(acessibilidade)
+        ? prev.accessibility.filter((a) => a !== acessibilidade)
+        : [...prev.accessibility, acessibilidade];
+      return { ...prev, accessibility: acessibilidades };
+    });
   };
 
   // Carregar dados do usuário
@@ -80,11 +95,60 @@ export default function EditarPerfilPage() {
           email: user.email || '',
           cnpj: user.cnpj || '',
           phone: user.phone || '',
-          accessibility: '',
+          accessibility: [],
         });
       }
     }
   }, [user, userType, isAuthenticated, isLoading, router]);
+
+  // Buscar acessibilidades do banco e dados atuais da empresa
+  useEffect(() => {
+    const fetchData = async () => {
+      if (userType !== 'company' || !user?.id) return;
+      
+      try {
+        setLoadingAcessibilidades(true);
+        
+        // Buscar todas as acessibilidades disponíveis
+        const analytics = await getAnalitycs();
+        const data = analytics.message || [];
+        const acessibilidadesSet = new Set<string>();
+        
+        if (Array.isArray(data)) {
+          data.forEach((item: any) => {
+            const acessibilidade = item.descricao_acessibilidade;
+            if (acessibilidade) {
+              acessibilidadesSet.add(acessibilidade);
+            }
+          });
+        }
+        
+        setAcessibilidadesDisponiveis(Array.from(acessibilidadesSet));
+        
+        // Buscar acessibilidades atuais da empresa
+        const companyDetails = await getCompany(user.id);
+        if (companyDetails && companyDetails.message) {
+          const currentAccessibility = companyDetails.message.accessibility || '';
+          const accessibilityArray = currentAccessibility
+            .split(',')
+            .map((item: string) => item.trim())
+            .filter((item: string) => item.length > 0);
+          
+          setCompanyData(prev => ({
+            ...prev,
+            accessibility: accessibilityArray,
+          }));
+        }
+        
+      } catch (error) {
+        console.error('Erro ao buscar acessibilidades:', error);
+      } finally {
+        setLoadingAcessibilidades(false);
+      }
+    };
+    
+    fetchData();
+  }, [user, userType]);
 
   const handleSubmitCandidate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -172,7 +236,13 @@ export default function EditarPerfilPage() {
         throw new Error('Empresa não identificada');
       }
 
-      await updateCompany(user.id, companyData);
+      // Converter array de acessibilidades para string separada por vírgula
+      const dataToSend = {
+        ...companyData,
+        accessibility: companyData.accessibility.join(', '),
+      };
+
+      await updateCompany(user.id, dataToSend);
       
       showPopup('success', 'Perfil atualizado com sucesso!');
       
@@ -450,17 +520,49 @@ export default function EditarPerfilPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Acessibilidade (Opcional)
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
+                  Acessibilidades da Empresa (selecione uma ou mais)
                 </label>
-                <textarea
-                  value={companyData.accessibility}
-                  onChange={(e) => setCompanyData({...companyData, accessibility: e.target.value})}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:border-transparent transition shadow-sm hover:border-gray-400"
-                  style={{color: '#111827'}}
-                  rows={3}
-                  placeholder="Descreva as condições de acessibilidade da empresa..."
-                />
+                
+                {loadingAcessibilidades ? (
+                  <div className="flex items-center justify-center py-8">
+                    <svg className="animate-spin h-8 w-8 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span className="ml-3 text-gray-600">Carregando acessibilidades...</span>
+                  </div>
+                ) : acessibilidadesDisponiveis.length === 0 ? (
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center text-gray-500">
+                    Nenhuma acessibilidade disponível no momento
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 gap-3 max-h-64 overflow-y-auto p-3 border border-gray-200 rounded-lg bg-gray-50">
+                    {acessibilidadesDisponiveis.map((acessibilidade, index) => (
+                      <label
+                        key={index}
+                        className={`flex items-start p-3 border-2 rounded-lg cursor-pointer transition ${
+                          companyData.accessibility.includes(acessibilidade)
+                            ? 'bg-orange-50'
+                            : 'border-gray-300 hover:opacity-80 bg-white'
+                        }`}
+                        style={companyData.accessibility.includes(acessibilidade) ? {borderColor: '#ECAE7D'} : {}}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={companyData.accessibility.includes(acessibilidade)}
+                          onChange={() => handleAcessibilidadeChange(acessibilidade)}
+                          className="mt-1 h-4 w-4 rounded border-gray-300 flex-shrink-0"
+                          style={{accentColor: '#ECAE7D'}}
+                        />
+                        <span className="ml-3 text-sm font-medium text-gray-700">{acessibilidade}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+                <p className="mt-2 text-sm text-gray-500">
+                  Selecione todas as acessibilidades que sua empresa oferece
+                </p>
               </div>
 
               <button

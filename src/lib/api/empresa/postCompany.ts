@@ -9,10 +9,11 @@ export let postCompany = async (body: {
   phone: string;
   accessibility: string;
 }): Promise<any> => {
-  let result = await fetch(`http://localhost:3001/create/contratante`, {
-    method: "POST",
+  let result = await fetch('http://localhost:3001/create/contratante', {
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
     },
     body: JSON.stringify(body),
   });

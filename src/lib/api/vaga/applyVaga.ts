@@ -5,7 +5,10 @@ export let applyVaga = async (applicationData: {
     id: string;
 }) => {
     try {
-        const headers = getAuthHeaders();
+        const headers = {
+            ...getAuthHeaders(),
+            Accept: 'application/json',
+        };
 
         const response = await fetch(`http://localhost:3001/register/vaga/${applicationData.id}`, {
             method: 'POST',

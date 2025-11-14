@@ -11,7 +11,10 @@ export const getVagasByCandidate = async (candidateId: string) => {
     console.log('[getVagasByCandidate] fetch ->', url);
     const response = await fetch(url, {
       method: 'GET',
-      headers,
+      headers: {
+        ...headers,
+        Accept: 'application/json',
+      },
     });
 
     console.log('[getVagasByCandidate] status:', response.status);

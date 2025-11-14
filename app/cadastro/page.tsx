@@ -20,8 +20,6 @@ interface FormDataCandidato {
   dataNascimento: string;
   deficiencia: DeficienciaType;
   subtipoDeficiencia: string;
-  barreira: string[];
-  acessibilidade: string[];
 }
 
 interface FormDataEmpresa {
@@ -44,26 +42,6 @@ export default function CadastroUsuario() {
     visual: Array<{id: string, nome: string}>;
     motora: Array<{id: string, nome: string}>;
     auditiva: Array<{id: string, nome: string}>;
-  }>({
-    visual: [],
-    motora: [],
-    auditiva: []
-  });
-
-  const [barreirasPorDeficiencia, setBarreirasPorDeficiencia] = useState<{
-    visual: string[];
-    motora: string[];
-    auditiva: string[];
-  }>({
-    visual: [],
-    motora: [],
-    auditiva: []
-  });
-
-  const [acessibilidadesPorDeficiencia, setAcessibilidadesPorDeficiencia] = useState<{
-    visual: string[];
-    motora: string[];
-    auditiva: string[];
   }>({
     visual: [],
     motora: [],
@@ -95,8 +73,6 @@ export default function CadastroUsuario() {
     dataNascimento: '',
     deficiencia: '',
     subtipoDeficiencia: '',
-    barreira: [],
-    acessibilidade: [],
   });
 
   const [formDataEmpresa, setFormDataEmpresa] = useState<FormDataEmpresa>({
@@ -138,18 +114,6 @@ export default function CadastroUsuario() {
           auditiva: [] as Array<{id: string, nome: string}>
         };
         
-        const barreiras = {
-          visual: [] as string[],
-          motora: [] as string[],
-          auditiva: [] as string[]
-        };
-        
-        const acessibilidades = {
-          visual: [] as string[],
-          motora: [] as string[],
-          auditiva: [] as string[]
-        };
-        
         const acessEmpresa: string[] = [];
         
         // Processar os dados retornados
@@ -158,7 +122,6 @@ export default function CadastroUsuario() {
             const tipoDeficiencia = item.tipo_deficiencia;
             const subtipoId = item.id_subtipo_deficiencia;
             const subtipoNome = item.subtipo_deficiencia;
-            const barreira = item.descricao_barreira;
             const acessibilidade = item.descricao_acessibilidade;
             
             // Identificar o tipo de deficiência e organizar os dados
@@ -167,39 +130,15 @@ export default function CadastroUsuario() {
               if (subtipoId && subtipoNome && !subtipos.visual.find(s => s.id === subtipoId)) {
                 subtipos.visual.push({ id: subtipoId, nome: subtipoNome });
               }
-              // Adicionar barreira
-              if (barreira && !barreiras.visual.includes(barreira)) {
-                barreiras.visual.push(barreira);
-              }
-              // Adicionar acessibilidade
-              if (acessibilidade && !acessibilidades.visual.includes(acessibilidade)) {
-                acessibilidades.visual.push(acessibilidade);
-              }
             } else if (tipoDeficiencia === 'Deficiencia Motora') {
               // Adicionar subtipo com ID
               if (subtipoId && subtipoNome && !subtipos.motora.find(s => s.id === subtipoId)) {
                 subtipos.motora.push({ id: subtipoId, nome: subtipoNome });
               }
-              // Adicionar barreira
-              if (barreira && !barreiras.motora.includes(barreira)) {
-                barreiras.motora.push(barreira);
-              }
-              // Adicionar acessibilidade
-              if (acessibilidade && !acessibilidades.motora.includes(acessibilidade)) {
-                acessibilidades.motora.push(acessibilidade);
-              }
             } else if (tipoDeficiencia === 'Deficiencia Auditiva') {
               // Adicionar subtipo com ID
               if (subtipoId && subtipoNome && !subtipos.auditiva.find(s => s.id === subtipoId)) {
                 subtipos.auditiva.push({ id: subtipoId, nome: subtipoNome });
-              }
-              // Adicionar barreira
-              if (barreira && !barreiras.auditiva.includes(barreira)) {
-                barreiras.auditiva.push(barreira);
-              }
-              // Adicionar acessibilidade
-              if (acessibilidade && !acessibilidades.auditiva.includes(acessibilidade)) {
-                acessibilidades.auditiva.push(acessibilidade);
               }
             }
             
@@ -211,13 +150,9 @@ export default function CadastroUsuario() {
         }
         
         console.log('Subtipos processados:', subtipos);
-        console.log('Barreiras processadas:', barreiras);
-        console.log('Acessibilidades processadas:', acessibilidades);
         console.log('Acessibilidades para empresa:', acessEmpresa);
         
         setSubtiposDeficiencia(subtipos);
-        setBarreirasPorDeficiencia(barreiras);
-        setAcessibilidadesPorDeficiencia(acessibilidades);
         setAcessibilidadesEmpresa(acessEmpresa);
         
       } catch (error) {
@@ -286,30 +221,8 @@ export default function CadastroUsuario() {
       setFormData((prev: FormDataCandidato) => ({
         ...prev,
         subtipoDeficiencia: '',
-        barreira: [],
-        acessibilidade: [],
       }));
     }
-  };
-
-  // Função para lidar com checkboxes de barreira
-  const handleBarreiraChange = (barreira: string) => {
-    setFormData((prev) => {
-      const barreiras = prev.barreira.includes(barreira)
-        ? prev.barreira.filter((b) => b !== barreira)
-        : [...prev.barreira, barreira];
-      return { ...prev, barreira: barreiras };
-    });
-  };
-
-  // Função para lidar com checkboxes de acessibilidade
-  const handleAcessibilidadeChange = (acessibilidade: string) => {
-    setFormData((prev) => {
-      const acessibilidades = prev.acessibilidade.includes(acessibilidade)
-        ? prev.acessibilidade.filter((a) => a !== acessibilidade)
-        : [...prev.acessibilidade, acessibilidade];
-      return { ...prev, acessibilidade: acessibilidades };
-    });
   };
 
   // Função para lidar com checkboxes de acessibilidade da empresa
@@ -390,8 +303,8 @@ export default function CadastroUsuario() {
           hearing_disability: formData.deficiencia === 'auditiva',
           visual_disability: formData.deficiencia === 'visual',
           sub_type: formData.subtipoDeficiencia, // Agora envia o ID do subtipo (ex: "DMOTO-123456")
-          barrier: formData.barreira.join(', '), // Converte array para string separada por vírgulas
-          accessibility: formData.acessibilidade.join(', '), // Converte array para string separada por vírgulas
+          barrier: '', // Campo vazio
+          accessibility: '', // Campo vazio
         };
 
         console.log('=== DADOS DO CADASTRO ===');
@@ -429,8 +342,6 @@ export default function CadastroUsuario() {
           dataNascimento: '',
           deficiencia: '',
           subtipoDeficiencia: '',
-          barreira: [],
-          acessibilidade: [],
         });
       } catch (error) {
         console.error('Erro ao cadastrar:', error);
@@ -944,68 +855,6 @@ export default function CadastroUsuario() {
                     </option>
                   ))}
                 </select>
-              </div>
-            )}
-
-            {/* Barreira (aparece após selecionar tipo) */}
-            {formData.deficiencia && (
-              <div className="animate-fadeIn">
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Barreiras Principais (selecione uma ou mais)
-                </label>
-                <div className="grid md:grid-cols-2 gap-3 max-h-64 overflow-y-auto p-3 border border-gray-200 rounded-lg bg-gray-50">
-                  {barreirasPorDeficiencia[formData.deficiencia].map((barreira, index) => (
-                    <label
-                      key={index}
-                      className={`flex items-start p-3 border-2 rounded-lg cursor-pointer transition ${
-                        formData.barreira.includes(barreira)
-                          ? 'bg-blue-50'
-                          : 'border-gray-300 hover:opacity-80 bg-white'
-                      }`}
-                      style={formData.barreira.includes(barreira) ? {borderColor: '#7BB7EB'} : {}}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={formData.barreira.includes(barreira)}
-                        onChange={() => handleBarreiraChange(barreira)}
-                        className="mt-1 h-4 w-4 rounded border-gray-300 flex-shrink-0"
-                        style={{accentColor: '#7BB7EB'}}
-                      />
-                      <span className="ml-3 text-sm font-medium text-gray-700">{barreira}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Acessibilidade (aparece após selecionar tipo) */}
-            {formData.deficiencia && (
-              <div className="animate-fadeIn">
-                <label className="block text-sm font-semibold text-gray-700 mb-3">
-                  Recursos de Acessibilidade Necessários (selecione uma ou mais)
-                </label>
-                <div className="grid md:grid-cols-2 gap-3 max-h-64 overflow-y-auto p-3 border border-gray-200 rounded-lg bg-gray-50">
-                  {acessibilidadesPorDeficiencia[formData.deficiencia].map((acessibilidade, index) => (
-                    <label
-                      key={index}
-                      className={`flex items-start p-3 border-2 rounded-lg cursor-pointer transition ${
-                        formData.acessibilidade.includes(acessibilidade)
-                          ? 'bg-blue-50'
-                          : 'border-gray-300 hover:opacity-80 bg-white'
-                      }`}
-                      style={formData.acessibilidade.includes(acessibilidade) ? {borderColor: '#7BB7EB'} : {}}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={formData.acessibilidade.includes(acessibilidade)}
-                        onChange={() => handleAcessibilidadeChange(acessibilidade)}
-                        className="mt-1 h-4 w-4 rounded border-gray-300 flex-shrink-0"
-                        style={{accentColor: '#7BB7EB'}}
-                      />
-                      <span className="ml-3 text-sm font-medium text-gray-700">{acessibilidade}</span>
-                    </label>
-                  ))}
-                </div>
               </div>
             )}
 

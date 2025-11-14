@@ -5,6 +5,8 @@ import { useAuth } from '../../src/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { getVagas } from '../../src/lib/api/vaga/getVagas';
 import { applyVaga } from '../../src/lib/api/vaga/applyVaga';
+import { getAnalitycs } from '../../src/lib/api/admin/getAnalitycs';
+import { getCandidate } from '../../src/lib/api/candidate/getCandidate';
 
 interface Vaga {
   id: string;
@@ -31,6 +33,8 @@ export default function VagasPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isApplying, setIsApplying] = useState(false);
+  const [relacoes, setRelacoes] = useState<Map<string, string[]>>(new Map());
+  const [candidateBarriers, setCandidateBarriers] = useState<string[]>([]);
 
   // Estado para popup personalizado
   const [popup, setPopup] = useState<{
@@ -51,47 +55,132 @@ export default function VagasPage() {
     }, 4000);
   };
 
+  // Carregar relações barreira-acessibilidade do banco
+  const loadRelacoes = async () => {
+    try {
+      const response = await getAnalitycs();
+      const data = response.message || [];
+      
+      const relacoesMap = new Map<string, string[]>();
+      
+      if (Array.isArray(data)) {
+        data.forEach((item: any) => {
+          const barreira = item.descricao_barreira;
+          const acessibilidade = item.descricao_acessibilidade;
+          
+          if (barreira && acessibilidade) {
+            if (!relacoesMap.has(barreira)) {
+              relacoesMap.set(barreira, []);
+            }
+            const acessibilidades = relacoesMap.get(barreira)!;
+            if (!acessibilidades.includes(acessibilidade)) {
+              acessibilidades.push(acessibilidade);
+            }
+          }
+        });
+      }
+      
+      console.log('Relações barreira-acessibilidade carregadas:', relacoesMap);
+      setRelacoes(relacoesMap);
+    } catch (error) {
+      console.error('Erro ao carregar relações:', error);
+    }
+  };
+
+  // Carregar barreiras do candidato
+  const loadCandidateBarriers = async () => {
+    try {
+      const candidateData = await getCandidate();
+      if (candidateData && candidateData.message) {
+        const barreirasString = candidateData.message.barrier || '';
+        const barreirasArray = barreirasString
+          .split(',')
+          .map((item: string) => item.trim())
+          .filter((item: string) => item.length > 0);
+        
+        console.log('Barreiras do candidato:', barreirasArray);
+        setCandidateBarriers(barreirasArray);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar barreiras do candidato:', error);
+    }
+  };
+
   useEffect(() => {
-    loadVagas();
-  }, [userType, isAuthenticated]);
+    loadRelacoes();
+  }, []);
+
+  useEffect(() => {
+    if (userType === 'candidate' && isAuthenticated && user?.id) {
+      loadCandidateBarriers();
+    }
+  }, [userType, isAuthenticated, user]);
+
+  useEffect(() => {
+    if (relacoes.size > 0) {
+      loadVagas();
+    }
+  }, [userType, isAuthenticated, relacoes, candidateBarriers]);
 
   const loadVagas = async () => {
     try {
       setLoading(true);
       
-      // Se for candidato autenticado, pegar o ID da deficiência do localStorage
-      let tipoAcessFilter: string | undefined = undefined;
-      if (userType === 'candidate' && isAuthenticated) {
-        try {
-          // Tentar obter o ID da deficiência do usuário armazenado no localStorage
-          const storedUser = localStorage.getItem('@PCDentro:user');
-          if (storedUser) {
-            const userData = JSON.parse(storedUser);
-            const deficiencia = userData?.deficiencia;
-            if (deficiencia) {
-              tipoAcessFilter = deficiencia;
-              console.log('Filtrando vagas por tipo_acess (deficiencia do localStorage):', tipoAcessFilter);
-            }
-          }
-        } catch (error) {
-          console.error('Erro ao buscar deficiência do localStorage:', error);
-        }
+      // Buscar todas as vagas sem filtro
+      const data = await getVagas();
+      console.log('Dados recebidos:', data);
+      
+      const vagasArray = data?.data || data?.message || data || [];
+      let arr = Array.isArray(vagasArray) ? vagasArray : [];
+      
+      // Filtrar vagas desativadas para candidatos
+      if (userType === 'candidate') {
+        arr = arr.filter((v: any) => v.status);
       }
       
-      const data = await getVagas(tipoAcessFilter);
-      console.log('Dados recebidos:', data);
-      // A API pode retornar em diferentes formatos:
-      // {data: [...], total: X, source: 'cache'} ou {message: [...]} ou [...]
-      const vagasArray = data?.data || data?.message || data || [];
-      // Se for candidato, remover vagas desativadas (status === false)
-      const arr = Array.isArray(vagasArray) ? vagasArray : [];
-      try {
-        if (userType === 'candidate') {
-          setVagas(arr.filter((v: any) => v.status));
-        } else {
-          setVagas(arr);
-        }
-      } catch (e) {
+      // Aplicar filtro baseado em relações barreira-acessibilidade para candidatos
+      if (userType === 'candidate' && isAuthenticated && candidateBarriers.length > 0 && relacoes.size > 0) {
+        console.log('=== INICIANDO FILTRO DE VAGAS ===');
+        console.log('Barreiras do candidato:', candidateBarriers);
+        console.log('Total de vagas antes do filtro:', arr.length);
+        
+        const vagasFiltradas = arr.filter((vaga: any) => {
+          const acessibilidadesVaga = (vaga.accessibility || vaga.acess || '')
+            .split(',')
+            .map((item: string) => item.trim())
+            .filter((item: string) => item.length > 0);
+          
+          if (acessibilidadesVaga.length === 0) {
+            console.log(`Vaga "${vaga.titulo}" não tem acessibilidades definidas - REMOVIDA`);
+            return false;
+          }
+          
+          console.log(`\nAnalisando vaga: "${vaga.titulo}"`);
+          console.log('Acessibilidades da vaga:', acessibilidadesVaga);
+          
+          // Para cada barreira do candidato, verificar se existe pelo menos uma acessibilidade compatível
+          const todasBarreirasAtendidas = candidateBarriers.every((barreira) => {
+            const acessibilidadesCompativeis = relacoes.get(barreira) || [];
+            console.log(`  Barreira "${barreira}" tem acessibilidades compatíveis:`, acessibilidadesCompativeis);
+            
+            // Verificar se alguma acessibilidade da vaga é compatível com esta barreira
+            const temCompatibilidade = acessibilidadesCompativeis.some((acess) => 
+              acessibilidadesVaga.includes(acess)
+            );
+            
+            console.log(`  Barreira "${barreira}" é atendida pela vaga? ${temCompatibilidade}`);
+            return temCompatibilidade;
+          });
+          
+          console.log(`Vaga "${vaga.titulo}" ${todasBarreirasAtendidas ? 'ACEITA' : 'REJEITADA'}`);
+          return todasBarreirasAtendidas;
+        });
+        
+        console.log(`Total de vagas após filtro: ${vagasFiltradas.length}`);
+        console.log('=== FIM DO FILTRO DE VAGAS ===\n');
+        
+        setVagas(vagasFiltradas);
+      } else {
         setVagas(arr);
       }
     } catch (error) {
@@ -242,7 +331,29 @@ export default function VagasPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhuma vaga encontrada</h3>
-              <p className="text-gray-600">Não há vagas disponíveis no momento</p>
+              {userType === 'candidate' && candidateBarriers.length > 0 ? (
+                <div>
+                  <p className="text-gray-600 mb-3">
+                    Não encontramos vagas compatíveis com suas necessidades de acessibilidade no momento
+                  </p>
+                  <div className="bg-blue-50 rounded-lg p-4 text-sm text-gray-700 max-w-md mx-auto">
+                    <p className="font-semibold mb-2">Suas barreiras cadastradas:</p>
+                    <ul className="text-left space-y-1">
+                      {candidateBarriers.map((barreira, index) => (
+                        <li key={index} className="flex items-center">
+                          <span className="mr-2">•</span>
+                          {barreira}
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-3 text-xs text-gray-600">
+                      As vagas exibidas devem ter acessibilidades compatíveis com suas barreiras
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-gray-600">Não há vagas disponíveis no momento</p>
+              )}
             </div>
           ) : (
             // Vagas list
